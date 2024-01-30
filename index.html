@@ -48,10 +48,36 @@
             <div hx-swap-oob="{{ .OOB }}">
             {{ end}}
               <li
-                class="list-group-item"
+                class="list-group-item d-flex justify-content-between align-items-start"
                 id="task-item-{{ .ID }}"
+                {{ if eq .OOB "delete" }}hx-swap-oob="{{ .OOB }}"{{ end }}
                 >
-                {{ .Title }}
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    value="" 
+                    hx-put="/tasks/{{ .ID }}/toggle"
+                    id="task-item-chk-{{ .ID }}"
+                    {{ if .Completed }}
+                    checked
+                    {{ end }}
+                    >
+                  <label 
+                    class="form-check-label"
+                    {{ if eq .OOB "true" }}hx-swap-oob="{{ .OOB }}"{{ end }}
+                    {{ if .Completed }}style="text-decoration:line-through;"{{ end }}
+                    id="task-item-chk-lbl-{{ .ID }}"
+                    for="task-item-chk-{{ .ID }}">
+                    {{ .Title }}
+                  </label>
+                </div>
+                <button 
+                  class="btn btn-outline-danger btn-sm" 
+                  type="button" 
+                  hx-delete="/tasks/{{ .ID }}"
+                  hx-confirm="Do you want to delele task: {{ .Title }}?"
+                  id="del-btn">Del</button>
               </li>
             {{if ne .OOB "" }}
             </div>
