@@ -36,52 +36,89 @@
         {{ end }}
       </div>
       <div class="row my-2">
-        {{block "tasks-stats-block" .}}
-        <span id="task-stats-lbl" hx-swap-oob="true">Finished {{ .CompletedCount }} of {{ .Count }} tasks.</span>
-        {{end}}
-    </div>
+        {{ block "tasks-stats-block" . }}
+          <span id="task-stats-lbl" hx-swap-oob="true"
+            >Finished {{ .CompletedCount }} of {{ .Count }} tasks.</span
+          >
+        {{ end }}
+      </div>
       <div class="row">
         <ul class="list-group list-group-flush" id="tasks-list">
           {{ range .Items }}
             {{ block "task-item-block" . }}
-            {{if ne .OOB "" }}
-            <div hx-swap-oob="{{ .OOB }}">
-            {{ end}}
+              {{ if ne .OOB "" }}
+                <div hx-swap-oob="{{ .OOB }}">
+              {{ end }} 
               <li
-                class="list-group-item d-flex justify-content-between align-items-start"
+                class="list-group-item"
                 id="task-item-{{ .ID }}"
                 {{ if eq .OOB "delete" }}hx-swap-oob="{{ .OOB }}"{{ end }}
-                >
-                <div class="form-check">
-                  <input 
-                    class="form-check-input" 
-                    type="checkbox" 
-                    value="" 
+                {{ if eq .OOB "true" }}hx-swap-oob="{{ .OOB }}"{{ end }}>
+                {{ if .IsEditing }}
+                  {{ block "edit-form-block" . }}
+                    <form hx-put="/tasks/{{ .ID }}" id="edit-task-form">
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          name="title"
+                          value="{{ .Title }}"
+                          class="form-control"
+                          placeholder="Save task"
+                          aria-label="Save task"
+                          aria-describedby="button-addon2" />
+                        <button
+                          class="btn btn-outline-primary"
+                          type="submit"
+                          id="button-addon2">
+                          Save
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          type="submit"
+                          id="button-addon2">
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  {{ end }}
+                {{ else }}
+                  <input
+                    class="form-check-input me-1"
+                    type="checkbox"
+                    value=""
                     hx-put="/tasks/{{ .ID }}/toggle"
                     id="task-item-chk-{{ .ID }}"
                     {{ if .Completed }}
-                    checked
-                    {{ end }}
-                    >
-                  <label 
+                      checked
+                    {{ end }} />
+                  <label
                     class="form-check-label"
                     {{ if eq .OOB "true" }}hx-swap-oob="{{ .OOB }}"{{ end }}
-                    {{ if .Completed }}style="text-decoration:line-through;"{{ end }}
+                    {{ if .Completed }}
+                      style="text-decoration:line-through;"
+                    {{ end }}
                     id="task-item-chk-lbl-{{ .ID }}"
                     for="task-item-chk-{{ .ID }}">
                     {{ .Title }}
                   </label>
-                </div>
-                <button 
-                  class="btn btn-outline-danger btn-sm" 
-                  type="button" 
-                  hx-delete="/tasks/{{ .ID }}"
-                  hx-confirm="Do you want to delele task: {{ .Title }}?"
-                  id="del-btn">Del</button>
+                  <button
+                    class="btn btn-outline-danger btn-sm float-end"
+                    type="button"
+                    hx-delete="/tasks/{{ .ID }}"
+                    hx-confirm="Do you want to delele task: {{ .Title }}?"
+                    id="del-btn">
+                    Del
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-sm float-end me-2"
+                    type="button"
+                    hx-get="/tasks/{{ .ID }}"
+                    id="del-btn">
+                    Edit
+                  </button>
+                {{ end }}
               </li>
-            {{if ne .OOB "" }}
-            </div>
-            {{ end}}
+              {{ if ne .OOB "" }}</div>{{ end }}
             {{ end }}
           {{ end }}
         </ul>

@@ -19,6 +19,7 @@ type Task struct {
 	Title     string
 	Completed bool
 	OOB       string
+	IsEditing bool
 }
 
 type Stats struct {
@@ -54,7 +55,9 @@ func main() {
 	r.HandleFunc("/", Home).Methods("GET")
 	r.HandleFunc("/tasks", Add).Methods("POST")
 	r.HandleFunc("/tasks/{id}/toggle", Toggle).Methods("PUT")
+	r.HandleFunc("/tasks/{id}", Update).Methods("PUT")
 	r.HandleFunc("/tasks/{id}", Del).Methods("DELETE")
+	r.HandleFunc("/tasks/{id}", Edit).Methods("GET")
 	log.Println("Listen and serve at :3000")
 	log.Fatal(http.ListenAndServe(":3000", r))
 }
@@ -263,5 +266,52 @@ func Del(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = tmpl.ExecuteTemplate(w, "tasks-stats-block", ts)
+	_ = tmpl.ExecuteTemplate(w, "task-item-block", t)
+}
+
+func Edit(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	taskId, err := strconv.Atoi(id)
+	if err != nil {
+		log.Printf("id not found: %v", err)
+		return
+	}
+	t, err := getTask(taskId)
+	if err != nil {
+		log.Printf("task not found: %v", err)
+		return
+	}
+	t.IsEditing = true
+	t.OOB = "true"
+	_ = tmpl.ExecuteTemplate(w, "task-item-block", t)
+}
+
+func Update(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	taskId, err := strconv.Atoi(id)
+	if err != nil {
+		log.Printf("id not found: %v", err)
+		return
+	}
+	title := r.FormValue("title")
+	if title == "" {
+		log.Printf("title can not null")
+		return
+	}
+
+	t, err := getTask(taskId)
+	if err != nil {
+		log.Printf("task not found: %v", err)
+		return
+	}
+	t.Title = title
+
+	err = updateTask(t)
+	if err != nil {
+		log.Printf("updating task error: %v", err)
+		return
+	}
+	t.OOB = "true"
+
 	_ = tmpl.ExecuteTemplate(w, "task-item-block", t)
 }
